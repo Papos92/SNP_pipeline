@@ -129,62 +129,56 @@ def main():
 	# Generating output directories for dules
 	trimmed_reads_outdir, logs_outdir, sorted_reads_outdir,	bwa_sam_outdir, bwa_bam_outdir,	sorted_bam_outdir, sorted_rmdup_bam_outdir = create_subdirs(outdir)
 	# Iterate over filepairs
-	sample_no = 1
-	with open(outdir+"/samplenames.txt", "w") as sample_file:
-		filelist = list_directory(args.input_dir, 'files', 1)
-		for file in filelist:
-			if '_R1' in file and file.replace('_R1', '_R2') in filelist:
-				file_prefix = file.split("_R1")[0].replace(".","_").replace(" ","_")
-				R1_file = os.path.abspath(args.input_dir)+"/"+file
-				R2_file = os.path.abspath(args.input_dir)+"/"+file.replace('_R1', '_R2')
-				if sample_no > 1:
-					sample_file.write("\n")
-				sample_file.write("Sample"+str(sample_no)+"\t"+os.path.dirname(args.input_dir)+"_"+file_prefix)
-				sample_no +=1
-				# Quality trim the reads
-				trim_reads(str(R1_file), str(R2_file),
-						   trimmed_reads_outdir+"/"+file_prefix+"_trimmed",
-						   args.threads, logs_outdir+"/erne-filter.log", log)
-				# Sort files to match order of paired reads and remove orphaned reads caused by quality trim
-				os.system("fastq_pair_mapper.py "+trimmed_reads_outdir+"/"+file_prefix+"_trimmed_1.fastq "
-						+trimmed_reads_outdir+"/"+file_prefix+"_trimmed_2.fastq ")
-				os.system("mv "+trimmed_reads_outdir+"/*_pairs_R1.fastq "+sorted_reads_outdir+"/.")
-				os.system("mv "+trimmed_reads_outdir+"/*_pairs_R2.fastq "+sorted_reads_outdir+"/.")
-				os.system("rename 's/_trimmed_1.fastq_pairs_R1.fastq/_R1_sorted.fastq/' "+sorted_reads_outdir+"/*")
-				os.system("rename 's/_trimmed_2.fastq_pairs_R2.fastq/_R2_sorted.fastq/' "+sorted_reads_outdir+"/*")
-				os.system("rm "+trimmed_reads_outdir+"/*.fastq_singles.fastq")
-				# Align trimmed, sorted .fatq files to reference with BWA aligner
-				os.system("bwa mem -M -t %s %s %s %s > %s"
-						  % (str(args.threads), os.environ['SNP_REF']+"/"+args.reference,
-							sorted_reads_outdir+"/"+file_prefix+"_R1_sorted.fastq",
-							sorted_reads_outdir+"/"+file_prefix+"_R2_sorted.fastq",
-							bwa_sam_outdir+"/"+file_prefix+".sam"))
-				# Convert sam to bam file
-				os.system("samtools view -Sb %s > %s"
-						  % (bwa_sam_outdir+"/"+file_prefix+".sam",
-							bwa_bam_outdir+"/"+file_prefix+".bam"))
-				# Sort bam file
-				os.system("samtools sort %s %s"
-						  % (bwa_bam_outdir+"/"+file_prefix+".bam",
-						  	sorted_bam_outdir+"/"+file_prefix+"_sorted"))
-				# Remove duplicates with Picard
-				os.system("java -jar $PICARD MarkDuplicates I=%s O=%s M=%s REMOVE_DUPLICATES=true"
-						  % (sorted_bam_outdir+"/"+file_prefix+"_sorted.bam",
-							sorted_rmdup_bam_outdir+"/"+file_prefix+"_sorted_rmdup.bam",
-							sorted_rmdup_bam_outdir+"/"+file_prefix+"_sorted_duplicatematrix.txt"))
-				os.system("samtools index %s"
-						  % (sorted_rmdup_bam_outdir+"/"+file_prefix+"_sorted_rmdup.bam"))
-				#os.system("java -jar $PICARD AddOrReplaceReadGroups I=%s O=%s RGLB=lib1 RGPL=illumina RGPU=unit RGSM=20"
-				#		  % (sorted_rmdup_bam_outdir+"/"+file_prefix+"_sorted_rmdup.bam",
-				#			sorted_rmdup_bam_outdir+"/"+file_prefix+"_sorted_rmdup_addgp.bam"))
-				#os.system("samtools index %s"
-				#		  % (sorted_rmdup_bam_outdir+"/"+file_prefix+"_sorted_rmdup_addgp.bam"))
-	
-				# Remove subdirs to spare storage capacity
-				if args.save_temp == "false":
-					for dir in [trimmed_reads_outdir, sorted_reads_outdir,	bwa_sam_outdir, bwa_bam_outdir,	sorted_bam_outdir]:
-						os.system("rm -rf "+dir)
-					trimmed_reads_outdir, logs_outdir, sorted_reads_outdir,	bwa_sam_outdir, bwa_bam_outdir,	sorted_bam_outdir, sorted_rmdup_bam_outdir = create_subdirs(outdir)
+	filelist = list_directory(args.input_dir, 'files', 1)
+	for file in filelist:
+		if '_R1' in file and file.replace('_R1', '_R2') in filelist:
+			file_prefix = file.split("_R1")[0].replace(".","_").replace(" ","_")
+			R1_file = os.path.abspath(args.input_dir)+"/"+file
+			R2_file = os.path.abspath(args.input_dir)+"/"+file.replace('_R1', '_R2')
+			# Quality trim the reads
+			trim_reads(str(R1_file), str(R2_file),
+					   trimmed_reads_outdir+"/"+file_prefix+"_trimmed",
+					   args.threads, logs_outdir+"/erne-filter.log", log)
+			# Sort files to match order of paired reads and remove orphaned reads caused by quality trim
+			os.system("fastq_pair_mapper.py "+trimmed_reads_outdir+"/"+file_prefix+"_trimmed_1.fastq "
+					+trimmed_reads_outdir+"/"+file_prefix+"_trimmed_2.fastq ")
+			os.system("mv "+trimmed_reads_outdir+"/*_pairs_R1.fastq "+sorted_reads_outdir+"/.")
+			os.system("mv "+trimmed_reads_outdir+"/*_pairs_R2.fastq "+sorted_reads_outdir+"/.")
+			os.system("rename 's/_trimmed_1.fastq_pairs_R1.fastq/_R1_sorted.fastq/' "+sorted_reads_outdir+"/*")
+			os.system("rename 's/_trimmed_2.fastq_pairs_R2.fastq/_R2_sorted.fastq/' "+sorted_reads_outdir+"/*")
+			os.system("rm "+trimmed_reads_outdir+"/*.fastq_singles.fastq")
+			# Align trimmed, sorted .fatq files to reference with BWA aligner
+			os.system("bwa mem -M -t %s %s %s %s > %s"
+					  % (str(args.threads), os.environ['SNP_REF']+"/"+args.reference,
+						sorted_reads_outdir+"/"+file_prefix+"_R1_sorted.fastq",
+						sorted_reads_outdir+"/"+file_prefix+"_R2_sorted.fastq",
+						bwa_sam_outdir+"/"+file_prefix+".sam"))
+			# Convert sam to bam file
+			os.system("samtools view -Sb %s > %s"
+					  % (bwa_sam_outdir+"/"+file_prefix+".sam",
+						bwa_bam_outdir+"/"+file_prefix+".bam"))
+			# Sort bam file
+			os.system("samtools sort %s %s"
+					  % (bwa_bam_outdir+"/"+file_prefix+".bam",
+					  	sorted_bam_outdir+"/"+file_prefix+"_sorted"))
+			# Remove duplicates with Picard
+			os.system("java -jar $PICARD MarkDuplicates I=%s O=%s M=%s REMOVE_DUPLICATES=true"
+					  % (sorted_bam_outdir+"/"+file_prefix+"_sorted.bam",
+						sorted_rmdup_bam_outdir+"/"+file_prefix+"_sorted_rmdup.bam",
+						sorted_rmdup_bam_outdir+"/"+file_prefix+"_sorted_duplicatematrix.txt"))
+			os.system("samtools index %s"
+					  % (sorted_rmdup_bam_outdir+"/"+file_prefix+"_sorted_rmdup.bam"))
+			#os.system("java -jar $PICARD AddOrReplaceReadGroups I=%s O=%s RGLB=lib1 RGPL=illumina RGPU=unit RGSM=20"
+			#		  % (sorted_rmdup_bam_outdir+"/"+file_prefix+"_sorted_rmdup.bam",
+			#			sorted_rmdup_bam_outdir+"/"+file_prefix+"_sorted_rmdup_addgp.bam"))
+			#os.system("samtools index %s"
+			#		  % (sorted_rmdup_bam_outdir+"/"+file_prefix+"_sorted_rmdup_addgp.bam"))
+
+			# Remove subdirs to spare storage capacity
+			if args.save_temp == "false":
+				for dir in [trimmed_reads_outdir, sorted_reads_outdir,	bwa_sam_outdir, bwa_bam_outdir,	sorted_bam_outdir]:
+					os.system("rm -rf "+dir)
+				trimmed_reads_outdir, logs_outdir, sorted_reads_outdir,	bwa_sam_outdir, bwa_bam_outdir,	sorted_bam_outdir, sorted_rmdup_bam_outdir = create_subdirs(outdir)
 
 #remove duplicates
 #for i in $(ls -d sample*/);
@@ -215,16 +209,22 @@ def main():
 #		-targetIntervals $(basename ${i}).rmdup.addgp.intervals
 #		-o $(basename ${i}).realigned.bam;
 	
+	# create sample_file.txt
+	sample_no = 1
+	with open(outdir+"/samplenames.txt", "w") as sample_file:
+		# Align sample bam files together
+		mpileup_command = ("samtools mpileup -f %s" % (os.environ['SNP_REF']+"/"+args.reference+".fasta"))
+		for file in list_directory(sorted_rmdup_bam_outdir, 'files', 1):
+			if file.endswith(".bam"):
+				mpileup_command += (" "+sorted_rmdup_bam_outdir+"/"+file)
+				if sample_no > 1:
+					sample_file.write("\n")
+				sample_file.write("Sample"+str(sample_no)+"\t"+os.path.dirname(args.input_dir)+"_"+file.replace("_sorted_rmdup.bam",""))
+				sample_no +=1
+		mpileup_command += (" > "+outdir+"/"+"total.mpileup")
+		print mpileup_command
+		os.system(mpileup_command)
 	sample_file.close()
-	#sys.exit()
-	# Align sample bam files together
-	mpileup_command = ("samtools mpileup -f %s" % (os.environ['SNP_REF']+"/"+args.reference+".fasta"))
-	for file in list_directory(sorted_rmdup_bam_outdir, 'files', 1):
-		if file.endswith(".bam"):
-			mpileup_command += (" "+sorted_rmdup_bam_outdir+"/"+file)
-	mpileup_command += (" > "+outdir+"/"+"total.mpileup")
-	print mpileup_command
-	os.system(mpileup_command)
 	# Call SNP's using VarScan
 	os.system("java -jar $VARSCAN mpileup2snp %s --min-coverage 2 --min-var-freq 0.8 --p-value 0.005 --variants --output-vcf > %s"
 			  % (outdir+"/"+"total.mpileup",
