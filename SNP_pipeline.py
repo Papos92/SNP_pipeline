@@ -216,7 +216,7 @@ def main():
 #		-o $(basename ${i}).realigned.bam;
 	
 	sample_file.close()
-
+	#sys.exit()
 	# Align sample bam files together
 	mpileup_command = ("samtools mpileup -f %s" % (os.environ['SNP_REF']+"/"+args.reference+".fasta"))
 	for file in list_directory(sorted_rmdup_bam_outdir, 'files', 1):
