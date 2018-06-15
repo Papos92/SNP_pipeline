@@ -144,8 +144,14 @@ def main():
 					+trimmed_reads_outdir+"/"+file_prefix+"_trimmed_2.fastq ")
 			os.system("mv "+trimmed_reads_outdir+"/*_pairs_R1.fastq "+sorted_reads_outdir+"/.")
 			os.system("mv "+trimmed_reads_outdir+"/*_pairs_R2.fastq "+sorted_reads_outdir+"/.")
-			os.system("rename 's/_trimmed_1.fastq_pairs_R1.fastq/_R1_sorted.fastq/' "+sorted_reads_outdir+"/*")
-			os.system("rename 's/_trimmed_2.fastq_pairs_R2.fastq/_R2_sorted.fastq/' "+sorted_reads_outdir+"/*")
+
+			# LAPTOP (newer rename)
+			#os.system("rename 's/_trimmed_1.fastq_pairs_R1.fastq/_R1_sorted.fastq/' "+sorted_reads_outdir+"/*")
+			#os.system("rename 's/_trimmed_2.fastq_pairs_R2.fastq/_R2_sorted.fastq/' "+sorted_reads_outdir+"/*")
+			# SERVER (older rename)
+                        os.system("rename _trimmed_1.fastq_pairs_R1.fastq _R1_sorted.fastq "+sorted_reads_outdir+"/*")
+                        os.system("rename _trimmed_2.fastq_pairs_R2.fastq _R2_sorted.fastq "+sorted_reads_outdir+"/*")
+
 			os.system("rm "+trimmed_reads_outdir+"/*.fastq_singles.fastq")
 			# Align trimmed, sorted .fatq files to reference with BWA aligner
 			os.system("bwa mem -M -t %s %s %s %s > %s"
@@ -158,9 +164,14 @@ def main():
 					  % (bwa_sam_outdir+"/"+file_prefix+".sam",
 						bwa_bam_outdir+"/"+file_prefix+".bam"))
 			# Sort bam file
-			os.system("samtools sort %s %s"
+			# LAPTOP (newer samtools)
+			#os.system("samtools sort %s %s"
+                        #                  % (bwa_bam_outdir+"/"+file_prefix+".bam",
+                        #                        sorted_bam_outdir+"/"+file_prefix+"_sorted"))
+			# SERVER (older samtools)
+			os.system("samtools sort %s -o %s"
 					  % (bwa_bam_outdir+"/"+file_prefix+".bam",
-					  	sorted_bam_outdir+"/"+file_prefix+"_sorted"))
+					  	sorted_bam_outdir+"/"+file_prefix+"_sorted.bam"))
 			# Remove duplicates with Picard
 			os.system("java -jar $PICARD MarkDuplicates I=%s O=%s M=%s REMOVE_DUPLICATES=true"
 					  % (sorted_bam_outdir+"/"+file_prefix+"_sorted.bam",
