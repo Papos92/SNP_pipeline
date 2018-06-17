@@ -43,10 +43,10 @@ def main():
 		for line in csv_file:
 			if header == False:
 				start = line.split(';"')[4].replace('"', '')
-				end = line.split(';"')[4].replace('"', '')+line.split(';"')[5].replace('"', '')
+				end = int(line.split(';"')[4].replace('"', ''))+int(line.split(';"')[5].replace('"', ''))
 				#print "START\t"+str(start)
 				#print "END\t"+str(end)
-				gene_positions.append(start+"-"+end)
+				gene_positions.append(start+"-"+str(end))
 			header = False
 	csv_file.close()
 	with open(args.input_file, "r") as infile, open(args.input_file.replace(".vcf", "_only_gene_snips.vcf"), "w") as outfile:
