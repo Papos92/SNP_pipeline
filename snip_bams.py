@@ -14,6 +14,7 @@
 # import python libraries
 from argparse import ArgumentParser
 import sys
+import os
 
 
 # Function to parse the command-line arguments
@@ -24,6 +25,9 @@ def parse_arguments(args):
 		action = "store", default = None, type = str,
 		help = "Location of input directory (required)",
 		required = True)
+	parser.add_argument("-r" "--reference", dest = "reference",
+		action = "store", default = "NC_011205", type = str,
+		help = "Reference genome (default=NC_011205)")
 	return parser.parse_args()
 
 
@@ -45,10 +49,7 @@ def main():
 	# parse command line arguments
 	args = parse_arguments(sys.argv)
 	# creating output directory
-	if args.output_dir == 'inputdir':
-		outdir = os.path.abspath(args.input_dir+"/snip_bams_output")
-	else:
-		outdir = os.path.abspath(args.output_dir)
+	outdir = os.path.abspath(args.input_dir+"/snip_bams_output")
 	os.system("mkdir -p "+outdir)	
 	# read .samplefile and make dictionary of lines
 	sample_no = 1
