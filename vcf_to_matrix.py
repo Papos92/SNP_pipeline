@@ -19,7 +19,7 @@ import sys
 # Function to parse the command-line arguments
 # Returns a namespace with argument keys and values
 def parse_arguments(args):
-	parser = ArgumentParser(prog="vcf_samplename_editor.py")
+	parser = ArgumentParser(prog="vcf_to_matrix.py")
 	parser.add_argument("-i", "--infile", dest = "input_file",
 		action = "store", default = None, type = str,
 		help = "Location of input .vsf file (required)",
