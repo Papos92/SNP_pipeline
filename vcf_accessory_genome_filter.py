@@ -50,7 +50,9 @@ def main():
 			header = False
 	csv_file.close()
 	with open(args.input_file, "r") as infile, open(args.input_file.replace(".vcf", "_only_gene_snips.vcf"), "w") as outfile:
-		write_to_out = "header"			
+		write_to_out = "header"
+		#genes = 0
+		#accessory = 0
 		for line in infile:
 			if write_to_out == "header":
 				outfile.write(line)
@@ -63,6 +65,10 @@ def main():
 						pos =  True
 				if pos ==  True:
 					outfile.write(line)
+					#genes += 1
+				#else:
+				#	accessory += 1
+				#print "GENES:\t"+str(genes)+"\tACCESSORY:\t"+str(accessory)
 			if line.startswith("#CHROM"):
 				write_to_out = "body"
 	infile.close()
