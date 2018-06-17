@@ -57,10 +57,10 @@ def main():
 		mpileup_command = ("samtools mpileup -f %s" % (os.environ['SNP_REF']+"/"+args.reference+".fasta"))
 		for file in list_directory(args.input_dir, 'files', 1):
 			if file.endswith(".bam"):
-				mpileup_command += (" "+sorted_rmdup_bam_outdir+"/"+file)
+				mpileup_command += (" "+args.input_dir+"/"+file)
 				if sample_no > 1:
 					sample_file.write("\n")
-				sample_file.write("Sample"+str(sample_no)+"\t"+os.path.dirname(args.input_dir)+"_"+file.replace("_sorted_rmdup.bam",""))
+				sample_file.write("Sample"+str(sample_no)+"\t"+file.replace("_sorted_rmdup.bam",""))
 				sample_no +=1
 		mpileup_command += (" > "+outdir+"/"+"total.mpileup")
 		print mpileup_command
