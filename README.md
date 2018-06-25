@@ -77,6 +77,7 @@ the reference_file directory in .fasta format and run the following commands:<br
     `bwa index 'genome'.fasta`<br />
 -   Create dictionary file of database for PICARD:<br />
     `samtools faidx 'genome'.fasta`<br />
--   Add 'genome'.cvs containing gene annotations, these are used for filtering snp's in the accessory genome.
+-   Add 'genome'.cvs containing gene annotations, these are used for filtering snp's in the accessory genome.<br />
+
 You can now run the pipeline with de -r 'genome' parameter where 'genome'
 is the name of the reference files (without extension).
