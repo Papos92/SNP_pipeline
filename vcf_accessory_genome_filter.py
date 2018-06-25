@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
-# Name:         vcf_samplename_editor.py
+# Name:         vcf_accessory_genome_filter.py
 # Author:       Tom van Wijk - RIVM Bilthoven
 # Date:         16-06-2018
 # Licence:      GNU General Public License v3.0, copy provided in repository
 
-# Reads a .vcf file and .samplename file and replaces sample names in .vcf file
-# and replaces sample names in .vcf file with names for .samplename file.
+# Reads a .vcf file and reference file and filteres out ass accessory genome
+# snp locations, writes output to new .vcf files.
 # This script is part of the SNP_pipeline.
 
 # For detailed information and instruction on how to install and use this software
@@ -49,7 +49,7 @@ def main():
 				gene_positions.append(start+"-"+str(end))
 			header = False
 	csv_file.close()
-	with open(args.input_file, "r") as infile, open(args.input_file.replace(".vcf", "_only_gene_snips.vcf"), "w") as outfile:
+	with open(args.input_file, "r") as infile, open(args.input_file.replace(".vcf", "_no_accessory.vcf"), "w") as outfile:
 		write_to_out = "header"
 		#genes = 0
 		#accessory = 0

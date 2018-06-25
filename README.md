@@ -1,126 +1,82 @@
-# SNP_pipeline
-Pipeline for reference-based variant (SNP/indels) calling from raw data to phylogeny.
+# snp_pipeline
 
-https://icb.med.cornell.edu/wiki/index.php/Elementolab/BWA_tutorial
+**Licence:	GNU General Public License v3.0 (copy provided in directory)**<br />
+Author:		Tom van Wijk - RIVM Bilthoven<br />
 
-Introduction
+### DESCRIPTION
 
-BWA (Burrows-Wheeler Aligner)is a program that aligns short deep-sequencing reads to long reference sequences. Here is a short tutorial on the installation and steps needed to perform alignments. You can align the short reads to the genome or the transcriptome depending on the experiment/application.
-[edit]
-Installation
-[edit]
-Download and install BWA on a Linux/Mac machine
+Pipeline to perform SNP calling on raw sequence data.
+Currently only supports illumina paired-end read data and
+supplied with a Salmonella Dublin reference genome.
 
-NOTE: You need to do this only once!!
+### REQUIREMENTS
 
-Download: http://sourceforge.net/projects/bio-bwa/files/
-
-Then:
-
-bunzip2 bwa-0.5.9.tar.bz2 
-tar xvf bwa-0.5.9.tar
-cd bwa-0.5.9
-make
-
-Add bwa to your PATH by editing ~/.bashrc and adding
-
-export PATH=$PATH:/path/to/bwa-0.5.9    # /path/to is an example ! replace with real path on your machine
-
-Then execute the command in using source.
-
-source ~/.bashrc
-
-(in some systems, ~/.bash_profile is used in place of ~/.bashrc)
-
-Then, to test if the installation was successful, just type:
-
-bwa
-
-If Unix can find bwa, the 'bwa' command alone will show you all of the options available.
-[edit]
-Download the reference genome
-
-NOTE: You need to do this only once !
-
-wget provides an easy way to do so, but you can also download the file manually.
-
-wget http://hgdownload.cse.ucsc.edu/goldenPath/hg19/bigZips/chromFa.tar.gz
-
-Unzip it and concatenate the chromosome files
-
-tar zvfx chromFa.tar.gz
-cat *.fa > wg.fa
-
-Then erase chromosome files:
-
-rm chr*.fa
-
-[edit]
-Download the mRNA sequences (RefSeq)
-
-    Download SNVseeqer's http://physiology.med.cornell.edu/faculty/elemento/lab/files/refGene.txt.07Jun2010.fa (they represent the genomic counterparts of RefSeq mRNAs, i.e. transcription start site to end site with all introns removed). Pleas do not use the mRNA transcripts from the RefSeq Web site directly. 
-
-    The latest RefGene FASTA file can be generated from the RefSeq definition file using SNVseeqer/Adding a new annotation database. 
+-	Linux operating system. This software is developed on Linux Ubuntu 16.04<br />
+	**Experiences when using different operating systems may vary.**
+-	python 2.7.x
+-	python libraries as listed in the import section of mothur_amplicon_pipeline.py
+-	erne v2.1.1 or newer
+-	Burrows-Wheels Aligner v0.7.12 or newer
+-	Samtools v0.1.19 or newer
+-   Picard Tools v2.18.7 or newer
+-   VarScan 2.3.9 or newer
 
 
-NOTE: You need to do this only once!!
-[edit]
-Index the references
-[edit]
-Create the index for the reference genome (assuming your reference sequences are in wg.fa)
+### INSTALLATION
 
-bwa index -p hg19bwaidx -a bwtsw wg.fa
+-	Clone the SNP_pipeline repository to the desired location on your system.<br />
+	`git clone https://github.com/Papos92/SNP_pipeline.git`
+-	Add the location of the SNP_pipeline directory to the PATH variable:<br />
+	`export PATH=$PATH:/path/to/SNP_pipeline`<br />
+	(It is recommended to add this command to your ~/.bashrc file)
+-	Create path variable SNP_REF to the SNP_pipeline directory:<br />
+	`export SNP_REF=/path/to/SNP_pipeline`<br />
+	(It is recommended to add this command to your ~/.bashrc file)
+-	Create path variable PICARD to picard.jar:<br />
+	`export PICARD=/path/to/picard.jar`<br />
+	(It is recommended to add this command to your ~/.bashrc file)
+-	Create path variable VARSCAN to VarScan.vX.X.X.jar:<br />
+	`export VARSCAN=/path/to/VarScan.vX.X.X.jar`<br />
+	(It is recommended to add this command to your ~/.bashrc file)
 
-Note 1: index creation only needs to be performed once (the index does not have to be recreated for every alignment job).
+### USAGE
 
-Note 2: for small genomes, use -a is instead
-[edit]
-Create the index for RefSeq transcript sequences (assuming your reference sequences are in refGene.txt.07Jun2010.fa)
+Start the pipeline with the following command:
 
-bwa index -p RefSeqbwaidx -a bwtsw refGene.txt.07Jun2010.fa
+`snp_pipeline.py -i 'inputdir' -o 'outputdir' -t 'threads'
+-x 'savetemp' -r 'reference'`
 
-Note: index creation only needs to be performed once (the index does not have to be recreated for every alignment job).
-[edit]
-Alignment of short reads
-[edit]
-Mapping short reads to the reference genome, eg hg19
+-	**'inputdir':**	location of input directory. (required)<br />
+			Should only contain either the uncompressed (.fastq)
+			or compressed (.fastq.gz) sequence files containing the
+			raw sequences of the forward and reverse reads.
+			For each sample, these fastq files need to be named with
+			an '_R1' or '_R2' tag respectively and  be furthermore identical.
+			The data is expected to be free of primer-, barcode- and adapter sequences.
+			Quality trimming is performed by the pipeline.			
 
-1. Align sequences using multiple threads (eg 4 CPUs). We assume your short reads are in the s_3_sequence.txt.gz file.
+-	**'outputdir':**	location of output directory.<br />
+			Default = subdirectory in inputdir
 
-bwa aln -t 4 hg19bwaidx s_3_sequence.txt.gz >  s_3_sequence.txt.bwa
+-	**'threads':**	Number of threads (virtual cpu cores) to be used.<br />
+			Default = 8.
 
-Notes: 
-(1) BWA can also take a compressed read file as input. So you can leave your read files compressed to save disk space.
-(2) Problematic SAM output has been observed when aligning with more than 10 CPUs.
+-	**'savetemp':**	Set to true so save the temporary files and
+			directories generated by the pipeline.<br />
+			default = false
+            
+-	**'reference':** Set the reference genome to be used for creating alignments
+            and calling SNP's.<br />
+			default = NC_011205. (Salmonella Dublin)
 
-2. Create alignment in the SAM format (a generic format for storing large nucleotide sequence alignments):
+### ADDING NEW REFERENCE GENOMES
 
-bwa samse hg19bwaidx s_3_sequence.txt.bwa s_3_sequence.txt.gz > s_3_sequence.txt.sam
-
-Note 1: BWA is capable of aligning reads stored in the compressed format (*.gz). You can gzip your reads to save disk space.
-
-Note 2: for paired end reads, you need to align each end (R1 and R2) separarely:
-
-bwa aln -t 4 hg19bwaidx s_3_1_sequence.txt.gz >  s_3_1_sequence.txt.bwa
-bwa aln -t 4 hg19bwaidx s_3_2_sequence.txt.gz >  s_3_2_sequence.txt.bwa
-bwa sampe hg19bwaidx s_3_1_sequence.txt.bwa s_3_2_sequence.txt.bwa s_3_1_sequence.txt.gz s_3_2_sequence.txt.gz > s_3_sequence.txt.sam
-
-Typically, after this step, you can split the reads using our split_samfile tool, or convert SAM to BAM
-[edit]
-Mapping short reads to RefSeq mRNAs
-
-1. Align sequences using multiple threads (eg 4). We assume your short reads are in the s_3_sequence.txt file.
-
-bwa aln -t 4 RefSeqbwaidx s_3_sequence.txt >  s_3_sequence.txt.bwa
-
-2. Create alignment in the SAM format (a generic format for storing large nucleotide sequence alignments):
-
-bwa samse RefSeqbwaidx s_3_sequence.txt.bwa s_3_sequence.txt > s_3_sequence.txt.sam
-
-[edit]
-Mapping long reads (454)
-
-You can align 454 long reads using the bwasw command:
-
-bwa bwasw hg19bwaidx 454seqs.txt > 454seqs.sam
-
+It is possible to add your own reference genomes by adding the genomes to
+the reference_file directory in .fasta format and run the following commands:<br />
+-   Index the reference genomes using BWA:<br />
+    `bwa index 'genome'.fasta`<br />
+-   Create dictionary file of database for PICARD:<br />
+    `samtools faidx 'genome'.fasta`<br />
+-   Add 'genome'.cvs containing gene annotations, these are used for filtering snp's in the accessory genome.
+You can now run the pipeline with de -r 'genome' parameter where 'genome'
+is the name of the reference files (without extension).
