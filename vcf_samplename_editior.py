@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # Name:         vcf_samplename_editor.py
-# Author:       Tom van Wijk - RIVM Bilthoven
+# Author:       Tom van Wijk
 # Date:         16-06-2018
 # Licence:      GNU General Public License v3.0, copy provided in repository
 
