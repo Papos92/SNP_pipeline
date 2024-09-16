@@ -26,7 +26,7 @@ supplied with a Salmonella Dublin reference genome.
 ### INSTALLATION
 
 -	Clone the SNP_pipeline repository to the desired location on your system.<br />
-	`git clone https://github.com/Papos92/SNP_pipeline.git`
+	`git clone https://github.com/tom-van-wijk/SNP_pipeline.git`
 -	Add the location of the SNP_pipeline directory to the PATH variable:<br />
 	`export PATH=$PATH:/path/to/SNP_pipeline`<br />
 	(It is recommended to add this command to your ~/.bashrc file)
